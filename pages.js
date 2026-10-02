@@ -1,0 +1,82 @@
+window.BOOK_PAGES = [
+  {
+    "title": "Front cover",
+    "src": "assets/page-00.png",
+    "source": "exec-5198c57e-2d5f-4d63-92f3-dab0ba4609de.png",
+    "width": 1145,
+    "height": 1374,
+    "sha256": "56e566eb80767d38efa716897efbe352dc057cdea90d7887793873afdada33a2"
+  },
+  {
+    "title": "Bedroom",
+    "src": "assets/page-01.png",
+    "source": "exec-21bea776-8542-438f-aaab-2e372621bd56.png",
+    "width": 1145,
+    "height": 1374,
+    "sha256": "c2d0b4562feff0cee95dd4805bc8bf9b6303b68e5c32ee26f27aefc64c2dbfba"
+  },
+  {
+    "title": "Closet & tea",
+    "src": "assets/page-02.png",
+    "source": "exec-d86a5c7b-a769-4131-8998-7ec27d35f315.png",
+    "width": 1145,
+    "height": 1374,
+    "sha256": "5639502a6b9e6db3d6d902693cfcdda8649b06bc6559d5d9f3e529b5264ade59"
+  },
+  {
+    "title": "Lake",
+    "src": "assets/page-03.png",
+    "source": "exec-073b25d1-ae56-4a66-9031-ea9f404101d1.png",
+    "width": 1145,
+    "height": 1374,
+    "sha256": "bb7c70343f0ecc3e0c1647cb3f8821d20fad16a6fa204c38f4fe5a2915ae070b"
+  },
+  {
+    "title": "Art easel",
+    "src": "assets/page-04.png",
+    "source": "exec-c3a7db6c-c825-4d16-8e9e-16909c4cfe57.png",
+    "width": 1145,
+    "height": 1374,
+    "sha256": "821f1116e04d23bcba61bc05f977f799b09ff245caef49ee167aef8678eacb41"
+  },
+  {
+    "title": "Salon",
+    "src": "assets/page-05.png",
+    "source": "exec-00304a69-2087-4f0a-bab9-77edc009eebb.png",
+    "width": 1145,
+    "height": 1374,
+    "sha256": "f78a6adc71ed931134eb783342b342c44ec3a30291d8402796661c318c406518"
+  },
+  {
+    "title": "Game board",
+    "src": "assets/page-06.png",
+    "source": "exec-06390638-8e11-497a-aa8d-fabc932ebce0.png",
+    "width": 1145,
+    "height": 1374,
+    "sha256": "1ddf5f9dc309409ab38f155e783901afefe565e7fc5fe46809344241f3593e2b"
+  },
+  {
+    "title": "Toca-style dress-up",
+    "src": "assets/page-07.png",
+    "source": "exec-b5f1144b-d6a1-4e42-8d62-fb83dd3a98cc.png",
+    "width": 1145,
+    "height": 1374,
+    "sha256": "2f2451c7a4e8dab74ff8ed145e152e85f058c560918ebab6f9e440d50b5c492d"
+  },
+  {
+    "title": "Gacha Capybara",
+    "src": "assets/page-08.png",
+    "source": "exec-6d9ff2ee-0255-46bb-a6e1-37eb5dcad57c.png",
+    "width": 1145,
+    "height": 1374,
+    "sha256": "cb643ffbfcf0cb15792aa945a60ff59ef47e448b1de64216d1d386c8dccd631b"
+  },
+  {
+    "title": "Back cover",
+    "src": "assets/page-09.png",
+    "source": "exec-831feb50-d720-4fb9-b9c6-d15f53bfa0b5.png",
+    "width": 1145,
+    "height": 1374,
+    "sha256": "bd52576739225989634a9bc589ea105f5b557d09dafc5a18a69d3d14a9fb4009"
+  }
+];
