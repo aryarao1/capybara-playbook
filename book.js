@@ -1,6 +1,7 @@
 (() => {
   'use strict';
   const pages = window.BOOK_PAGES;
+  const imageUrl = page => `${page.src}?v=${page.sha256.slice(0, 12)}`;
   const image = document.getElementById('page-image');
   const book = document.getElementById('book');
   const previous = document.getElementById('previous');
@@ -25,7 +26,7 @@
     const thumbnail = document.createElement('button');
     thumbnail.className = 'thumbnail';
     const preview = document.createElement('img');
-    preview.src = page.src; preview.alt = ''; preview.loading = 'lazy';
+    preview.src = imageUrl(page); preview.alt = ''; preview.loading = 'lazy';
     preview.width = page.width; preview.height = page.height;
     thumbnail.append(preview, `${String(index + 1).padStart(2, '0')} · ${page.title}`);
     thumbnail.addEventListener('click', () => { go(index); picker.close(); });
@@ -36,7 +37,7 @@
     const old = current;
     current = index;
     const page = pages[current];
-    image.src = page.src;
+    image.src = imageUrl(page);
     image.alt = page.title;
     document.getElementById('page-title').textContent = page.title;
     document.getElementById('counter').textContent = `${String(current + 1).padStart(2, '0')} / ${pages.length}`;
@@ -56,7 +57,7 @@
       ], { duration: 320, easing: 'cubic-bezier(.2,.8,.2,1)' });
     }
     [current - 1, current + 1].filter(i => i >= 0 && i < pages.length).forEach(i => {
-      const preload = new Image(); preload.src = pages[i].src;
+      const preload = new Image(); preload.src = imageUrl(pages[i]);
     });
   }
   function go(index) {

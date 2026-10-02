@@ -14,7 +14,7 @@ SELECTIONS=[
 ('Salon','00304a69-2087-4f0a-bab9-77edc009eebb'),
 ('Game board','06390638-8e11-497a-aa8d-fabc932ebce0'),
 ('Toca-style dress-up','b5f1144b-d6a1-4e42-8d62-fb83dd3a98cc'),
-('Gacha Capybara','6d9ff2ee-0255-46bb-a6e1-37eb5dcad57c'),
+('Gacha Capybara','88881a8b-bd07-43c7-968c-b3960deadbcc'),
 ('Back cover','831feb50-d720-4fb9-b9c6-d15f53bfa0b5')]
 manifest=[]
 for i,(title,uid) in enumerate(SELECTIONS):
