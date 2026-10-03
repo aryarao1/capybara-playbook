@@ -34,14 +34,42 @@
   function rerender(index){const m=mounted.get(index);if(m&&m.stage.isConnected)render(m.stage,m.tools,index);save();}
   function button(tools,label,action,className=''){const b=document.createElement('button');b.className='activity-tool '+className;b.type='button';b.textContent=label;b.addEventListener('click',action);tools.append(b);return b;}
   function reset(index){const keys={1:'bed',2:'closet',3:'lake',4:'art',5:'salon',6:'board',7:'toca',8:'gacha'};state[keys[index]]=structuredClone(defaults[keys[index]]);S.stop();rerender(index);if(index===1)rerender(2);say('Put back');}
-  function bedroom(stage){base(stage,'bedroom');const b=state.bed;
-    if(!b.awake)artPiece(stage,'sleeping','Sleeping capybara',A.sleeping.box,{static:true,z:3});
-    else {const capy=artPiece(stage,'capy','Capybara out of bed',b.pos,{z:4,drop:p=>{b.pos=p;rerender(1);return p;},tap:()=>{b.pos=[815,858,310,410];rerender(1);say('Capybara is out of bed');}});capy.classList.add('awake');
+  function bedroom(stage){
+    base(stage,'bedroom');const b=state.bed;
+    const home=[...defaults.bed.pos],folded=[205,873,740,205];
+    const onBed=p=>inside(center(p),[285,405,560,620]);
+    function sleep(){
+      // The original sleeping artwork wears the mask: return the same mask from its hook.
+      b.awake=false;b.mask=true;b.pos=[...home];b.blanket=null;
+      rerender(1);rerender(2);say('Capybara is tucked in and sleeping');
+    }
+    function wake(pos=home){
+      const wasSleeping=!b.awake;b.awake=true;b.pos=[...pos];b.blanket=[...folded];
+      if(wasSleeping)S.play('wake');
+      rerender(1);say('Capybara wakes up');
+    }
+    if(!b.awake){
+      artPiece(stage,'sleeping','Sleeping capybara',A.sleeping.box,{z:3,tap:()=>wake(),drop:p=>{
+        if(onBed(p))sleep();
+        else wake([clamp(p[0]+p[2]/2-home[2]/2,0,W-home[2]),clamp(p[1],0,H-home[3]),home[2],home[3]]);
+      }});
+    }else{
+      const capy=artPiece(stage,'capy','Capybara out of bed',b.pos,{z:4,drop:p=>{
+        if(onBed(p))sleep();else{b.pos=p;rerender(1);}return b.pos;
+      },tap:()=>{if(onBed(b.pos)){b.pos=[815,858,310,410];rerender(1);say('Capybara is out of bed');}else sleep();}});
+      capy.classList.add('awake');
       if(b.mask){const p=b.pos;const maskPos=[p[0]+p[2]*.14,p[1]+p[3]*.277,p[2]*.73,p[3]*.18];artPiece(stage,'mask','Put sleeping mask on closet hook',maskPos,{z:9,tap:removeMask,drop:()=>{removeMask();return maskPos;}});}
     }
     function removeMask(){b.mask=false;rerender(1);rerender(2);say('Sleeping mask is on the closet hook');}
-    const blanket=b.blanket||(b.awake?[205,873,740,205]:A.blanket.box);
-    artPiece(stage,'blanket',b.awake?'Blanket':'Wake capybara',blanket,{z:5,drop:p=>{if(!b.awake){b.awake=true;b.blanket=[205,873,740,205];S.play('wake');}else b.blanket=p;rerender(1);return p;},tap:()=>{if(!b.awake){b.awake=true;S.play('wake');say('Capybara wakes up');}else b.blanket=b.blanket?null:[190,1055,740,170];rerender(1);}});
+    const blanket=b.blanket||(b.awake?folded:A.blanket.box);
+    artPiece(stage,'blanket',b.awake?'Blanket':'Wake capybara',blanket,{z:5,drop:p=>{
+      if(!b.awake)wake();
+      else if(onBed(b.pos)&&inside(center(p),[250,470,650,560]))sleep();
+      else{b.blanket=p;rerender(1);}
+    },tap:()=>{
+      if(!b.awake)wake();else if(onBed(b.pos))sleep();
+      else{b.blanket=b.blanket?null:[190,1055,740,170];rerender(1);}
+    }});
   }
   function closet(stage){base(stage,'closet');const c=state.closet;
     if(!state.bed.mask){const strap=document.createElement('div');strap.className='mask-strap';place(strap,[683,197,266,140]);strap.innerHTML='<svg viewBox="0 0 266 140"><path d="M5 137 132 0 261 137" fill="none" stroke="#8555b5" stroke-width="10"/></svg>';stage.append(strap);artPiece(stage,'mask','Sleeping mask on hook',[662,278,311,116],{static:true});}
