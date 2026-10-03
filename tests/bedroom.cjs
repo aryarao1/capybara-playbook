@@ -12,7 +12,7 @@ class Element {
 }
 for(const [pointerType,width] of [['mouse',625],['touch',358]]){
  const stored=new Map(),announcement=new Element();
- const context={window:{CapySound:{play(){},stop(){}}},structuredClone,setTimeout,performance,console,
+ const context={window:{CapySound:{play(){},stop(){}},CapyRules:require('../game-rules.js')},structuredClone,setTimeout,performance,console,
  document:{createElement:()=>new Element(),getElementById:()=>announcement},
  localStorage:{getItem:k=>stored.get(k),setItem:(k,v)=>stored.set(k,v)}};
  for(const file of ['pages.js','pieces.js','activities.js'])vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),context);

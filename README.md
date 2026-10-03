@@ -16,4 +16,4 @@ Run `scripts/assemble.py` with Python, Pillow, and ReportLab. It uses the approv
 
 ## Checks
 
-Run `node tests/rules.cjs` to verify all dice allowances, forward-only movement, partial moves, and hazard landings. Browser verification covers drag/drop, coloring/reset, dress-up, sound preference persistence, and desktop/phone layouts.
+Run `node tests/rules.cjs` and `node tests/board.cjs` to verify opposite-end trophy routes, dice allowances, alternating turns, own-end hazard resets, either winner, replay and mouse/touch scene handlers. Run `node tests/bedroom.cjs` and `node tests/sounds.cjs` for bedroom and mute regressions. Browser verification covers drag/drop, coloring/reset, dress-up, sound preference persistence, and desktop/phone layouts.

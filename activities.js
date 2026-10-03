@@ -1,9 +1,10 @@
 (() => {
   'use strict';
   const W=1145,H=1374,A=window.CapyArt,S=window.CapySound,R=window.CapyRules;
-  const defaults={bed:{awake:false,mask:true,pos:[400,408,345,455],blanket:null},closet:{pos:[456,540,350,450],clothes:null,seated:false,eaten:[],tea:false},lake:{pos:[60,160,300,390],waist:false,head:false,swimming:false},art:{color:'#ed7a9f',size:20,strokes:[]},salon:{cut:662,bow:false,glasses:false},board:{positions:[-1,-1],active:0,remaining:0,die:1},toca:{worn:[],companion:null},gacha:{worn:[]}};
+  const defaults={bed:{awake:false,mask:true,pos:[400,408,345,455],blanket:null},closet:{pos:[456,540,350,450],clothes:null,seated:false,eaten:[],tea:false},lake:{pos:[60,160,300,390],waist:false,head:false,swimming:false},art:{color:'#ed7a9f',size:20,strokes:[]},salon:{cut:662,bow:false,glasses:false},board:R.newGame(),toca:{worn:[],companion:null},gacha:{worn:[]}};
   let state=structuredClone(defaults),uid=0;const mounted=new Map();
-  try {const saved=JSON.parse(localStorage.getItem('capy-play-v1')||'null');if(saved) for(const k of Object.keys(defaults)) if(saved[k])state[k]={...defaults[k],...saved[k]};} catch{}
+  try {const saved=JSON.parse(localStorage.getItem('capy-play-v1')||'null');if(saved) for(const k of Object.keys(defaults)) if(saved[k]&&(k!=='board'||saved[k].version===2))state[k]={...defaults[k],...saved[k]};} catch{}
+  if(state.board.version!==2)state.board=R.newGame();
   const save=()=>{try{localStorage.setItem('capy-play-v1',JSON.stringify(state));}catch{}};
   const say=text=>{document.getElementById('announcement').textContent=text;};
   const center=p=>[p[0]+p[2]/2,p[1]+p[3]/2];
@@ -118,22 +119,50 @@
     items.forEach(([key,target,label],i)=>{const worn=d.worn.includes(key),home=A[key].box;const el=artPiece(stage,key,label,worn?target:home,{z:worn?9+i:3+i,tap:()=>{d.worn=worn?d.worn.filter(x=>x!==key):[...d.worn,key];rerender(index);say(worn?`${label} put back`:`Wearing ${label}`);},drop:p=>{const equip=inside(center(p),body,60);d.worn=d.worn.filter(x=>x!==key);if(equip)d.worn.push(key);rerender(index);return equip?target:home;}});el.setAttribute('aria-pressed',String(worn));if(worn&&key==='headphones'){el.innerHTML='';for(const [box,p] of [[[837,288,292,160],[3,0,94,63]],[[837,448,91,152],[10,58,19,37]],[[1007,448,122,152],[73,58,23,37]]]){const layer=document.createElement('span');layer.className='worn-piece';layer.innerHTML=cut(key,box);Object.assign(layer.style,{left:p[0]+'%',top:p[1]+'%',width:p[2]+'%',height:p[3]+'%'});el.append(layer);}}});
     if(!isGacha)artPiece(stage,'companion','Move little capybara beside her',d.companion||A.companion.box,{z:7,tap:()=>{d.companion=[390,751,310,310];rerender(7);},drop:p=>{d.companion=p;return p;}});
   }
-  function board(stage,tools){base(stage,'board');const b=state.board;const names=['Trashcan capybara','Beach-ball capybara'];
-    function pawnPos(i){const pos=b.positions[i];if(pos<0)return i===0?[832,1122,180,196]:[936,1179,180,168];const[x,y]=R.track[pos];return i===0?[x-54+(i===b.active?0:12),y-110,111,121]:[x-61,y-96,123,115];}
-    function choose(i){if(b.remaining&&b.active!==i){say('Finish the current dice move first');return;}b.active=i;rerender(6);}
-    function attempt(destination){const i=b.active,result=R.move(b.positions[i],b.remaining,destination);if(!result.valid){stage.querySelector(`[data-player="${i}"]`)?.classList.add('blocked');say('That move is not available');return false;}b.positions[i]=result.position;b.remaining=result.won?0:result.remaining;if(i===0)S.play('clunk');if(result.hazard)S.play(result.hazard==='snake'?'hiss':'munch');save();rerender(6);if(result.hazard){effect(stage,'heart',R.track[destination]);say(`${result.hazard}. Back to the start`);}else if(result.won){say(`${names[i]} reached the end`);effect(stage,'heart',R.track.at(-1));}else say(`${b.remaining} spaces remaining`);return true;}
-    for(let i=0;i<2;i++){const pos=pawnPos(i),key=i===0?'trashPawn':'beachPawn';const pawn=artPiece(stage,key,names[i],pos,{z:10+i,className:b.active===i?'selected-pawn':'',tap:()=>choose(i),start:()=>{if(!b.remaining)b.active=i;},drop:p=>{if(i!==b.active)return pos;const pt=center(p);let best=-1,dist=Infinity;R.track.forEach((t,j)=>{const v=Math.hypot(t[0]-pt[0],t[1]-pt[1]);if(v<dist){dist=v;best=j;}});if(dist<150&&attempt(best))return pawnPos(i);return pos;}});pawn.dataset.player=i;}
-    R.track.forEach((p,i)=>{const t=document.createElement('button');t.className='track-target';place(t,[p[0]-54,p[1]-47,108,94]);t.type='button';t.setAttribute('aria-label',`Move to space ${i+1}`);t.disabled=!R.move(b.positions[b.active],b.remaining,i).valid;t.addEventListener('click',()=>attempt(i));stage.append(t);});
-    const dice=document.createElement('button');dice.type='button';dice.className='dice';dice.setAttribute('aria-label','Roll dice');dice.disabled=b.remaining>0;place(dice,[455,696,215,215]);stage.append(dice);
+  function board(stage,tools){
+    base(stage,'board');const b=state.board,names=['Trashcan capybara','Beach-ball capybara'];
+    const finished=b.winner!==null;
+    function pawnPos(i){const[x,y]=R.routes[i][b.positions[i]];return i===0?[x-54,y-88,111,121]:[x-61,y-80,123,115];}
+    function attempt(player,destination){
+      const result=R.advance(b,player,destination);
+      if(!result.valid){say('That move is not available');return false;}
+      if(player===0)S.play('clunk');
+      if(result.hazard)S.play(result.hazard==='snake'?'hiss':'munch');
+      rerender(6);
+      if(result.won){say(`${names[player]} wins!`);effect(stage,'heart',R.trophy);}
+      else if(result.hazard)say(`${names[player]} returns to its start. ${names[b.active]}'s turn`);
+      else say(b.remaining?`${b.remaining} spaces remaining`:`${names[b.active]}'s turn`);
+      return true;
+    }
+    for(let i=0;i<2;i++){
+      const pos=pawnPos(i),key=i===0?'trashPawn':'beachPawn';
+      const pawn=artPiece(stage,key,names[i],pos,{z:10+i,className:b.active===i?'selected-pawn':'',movable:!finished&&i===b.active,
+        tap:()=>say(finished?`${names[b.winner]} wins!`:`${names[b.active]}'s turn`),
+        drop:p=>{if(finished||i!==b.active)return pos;
+          const pt=center(p);let best=-1,dist=Infinity;
+          R.routes[i].forEach((t,j)=>{const v=Math.hypot(t[0]-pt[0],t[1]-pt[1]);if(v<dist){dist=v;best=j;}});
+          if(dist<105&&attempt(i,best))return pawnPos(i);return pos;
+        }});
+      pawn.dataset.player=i;pawn.setAttribute('aria-disabled',String(finished||i!==b.active));
+    }
+    R.routes[b.active].forEach((p,i)=>{
+      const trophy=i===R.routes[b.active].length-1,t=document.createElement('button');
+      t.className='track-target'+(trophy?' trophy-target':'');place(t,trophy?[R.trophy[0]-145,R.trophy[1]-100,290,200]:[p[0]-54,p[1]-47,108,94]);
+      t.type='button';t.setAttribute('aria-label',trophy?'Move to trophy':`Move to space ${i+1}`);
+      t.disabled=finished||!R.move(b.positions[b.active],b.remaining,i,b.active).valid;
+      t.addEventListener('click',()=>attempt(b.active,i));stage.append(t);
+    });
+    const dice=document.createElement('button');dice.type='button';dice.className='dice';dice.setAttribute('aria-label','Roll dice');dice.disabled=finished||b.remaining>0;place(dice,[455,736,215,215]);stage.append(dice);
     const dotMap={1:[[50,50]],2:[[25,25],[75,75]],3:[[25,25],[50,50],[75,75]],4:[[25,25],[75,25],[25,75],[75,75]],5:[[25,25],[75,25],[50,50],[25,75],[75,75]],6:[[25,25],[75,25],[25,50],[75,50],[25,75],[75,75]]};
-    function face(n){dice.innerHTML=`<svg viewBox="0 0 100 100">${dotMap[n].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="8" fill="#493c33"/>`).join('')}</svg>`;}face(b.die);
-    dice.addEventListener('click',()=>{if(b.remaining)return;b.die=R.roll();b.remaining=b.die;S.play('roll');rerender(6);stage.querySelector('.dice')?.classList.add('rolling');say(`Rolled ${b.die}`);});
-    for(let i=0;i<2;i++){const pick=button(tools,i===0?'🗑️':'🏖️',()=>choose(i));pick.setAttribute('aria-label',`Choose ${names[i]}`);pick.setAttribute('aria-pressed',String(b.active===i));pick.disabled=b.remaining>0&&b.active!==i;}
+    dice.innerHTML=`<svg viewBox="0 0 100 100">${dotMap[b.die].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="8" fill="#493c33"/>`).join('')}</svg>`;
+    dice.addEventListener('click',()=>{if(!R.beginRoll(b,R.roll()))return;S.play('roll');rerender(6);stage.querySelector('.dice')?.classList.add('rolling');say(`${names[b.active]} rolled ${b.die}`);});
+    const turn=document.createElement('output');turn.className='move-count'+(finished?' winner':'');turn.setAttribute('aria-label',finished?'Winner':'Current turn');turn.setAttribute('aria-live','polite');
+    turn.textContent=finished?`🏆 ${names[b.winner]} wins!`:`${b.active===0?'🗑️':'🏖️'} ${names[b.active]}'s turn`;tools.append(turn);
     const count=document.createElement('output');count.className='move-count';count.setAttribute('aria-label','Spaces remaining');count.textContent=b.remaining?`${b.remaining} ${b.remaining===1?'step':'steps'}`:'';tools.append(count);
   }
   function render(stage,tools,index){stage.replaceChildren();tools.replaceChildren();stage.dataset.page=index;stage.classList.toggle('is-activity',index>0&&index<9);mounted.set(index,{stage,tools});
     const fns={1:bedroom,2:closet,3:lake,4:coloring,5:salon,6:board,7:dressup,8:dressup};
-    if(fns[index]){fns[index](stage,tools,index);const put=button(tools,'↶ Put back',()=>reset(index),'reset-page');put.setAttribute('aria-label',`Put back ${window.BOOK_PAGES[index].title}`);}else base(stage,window.BOOK_PAGES[index].src);
+    if(fns[index]){fns[index](stage,tools,index);const replay=index===6&&state.board.winner!==null;const put=button(tools,replay?'↶ Play again':'↶ Put back',()=>reset(index),'reset-page');put.setAttribute('aria-label',replay?'Play again':`Put back ${window.BOOK_PAGES[index].title}`);}else base(stage,window.BOOK_PAGES[index].src);
   }
   window.CapyPlay={mount:render,unmount(){mounted.clear();S.stop();},getState:()=>structuredClone(state)};
 })();
